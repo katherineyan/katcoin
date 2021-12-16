@@ -1,0 +1,2 @@
+# katcoin
+My own blockchain
