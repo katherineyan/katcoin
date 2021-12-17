@@ -1,35 +1,65 @@
 
-# a block is stored as a tuple of 
-# (parent_hash, transactions, hash_itself)
+import hashlib
 
-def get_parent_hash(block):
-	return block[0]
+# UTILITY
 
-def get_transactions(block):
-	return block[1]
+def to_string(block):
+	return "{0}\t{1}".format(block[2], block[0])
 
-def get_hash_itself(block):
-	return block[2]
+# function to see if hash is valid
+def is_hash_valid(hash):
+	return hash.startswith('0' * 3)
 
-# function to reate a block
-def create_block(transactions, parent_hash):
-	hash_itself = hash((transactions, parent_hash))
-	return (parent_hash, transactions, hash_itself)
+# function to find a valid hash
+def calculate_valid_hash(start_hash):
+	hash = str(start_hash)
+	nonce = 0
 
-# function to create genesis block
-def create_genesis_block(transactions):
-	return create_block(transactions, 0)
+	while not is_hash_valid(hash):
+		temp = hash + str(nonce)
+		hash = hashlib.sha256(temp.encode("utf-8")).hexdigest()
+		nonce += 1
+		print("nonce: " + str(nonce) + ", hash: " + hash)
 
-# create the genesis block
-genesis_block = create_genesis_block("Y paid $100 to X")
+	return hash
 
-# print hash of genesis block
-genesis_block_hash = get_hash_itself(genesis_block)
-print("genesis_block_hash: ", genesis_block_hash)
 
-# create another block
-block1 = create_block("Y paid $20 to Z, X paid $10 to P", genesis_block_hash)
+# BLOCKS
 
-# print the hash of block1
-block1_hash = get_hash_itself(block1)
-print("block1_hash: ", block1_hash)
+class Block:
+	def __init__(self, transactions, parent_hash):
+		hash_itself = hash((transactions, parent_hash))
+		self.parent_hash = parent_hash
+		self.transactions = transactions
+		self.hash_itself = hash_itself
+
+
+# MINING
+
+
+
+
+def main():
+	# create the genesis block
+	genesis_block = Block("X paid $100 to Y", 0)
+
+	# print hash of genesis block
+	print("genesis_block_hash: ", genesis_block.hash_itself)
+
+	# create another block
+	block1 = Block("Y paid $20 to Z, X paid $10 to P", genesis_block.hash_itself)
+
+	# print the hash of block1
+	print("block1_hash: ", block1.hash_itself)
+
+	# calculate a valid hash using the starting block
+	if(False):
+		valid_hash = calculate_valid_hash(genesis_block.hash_itself)
+		print("valid_hash: ", valid_hash)
+
+
+if __name__ == "__main__":
+    main()
+
+
+
