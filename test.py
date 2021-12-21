@@ -1,61 +1,73 @@
 
 import hashlib
+from datetime import datetime
 
-# UTILITY
-
-def to_string(block):
-	return "{0}\t{1}".format(block[2], block[0])
-
-# function to see if hash is valid
-def is_hash_valid(hash):
-	return hash.startswith('0' * 3)
-
-# function to find a valid hash
-def calculate_valid_hash(start_hash):
-	hash = str(start_hash)
-	nonce = 0
-
-	while not is_hash_valid(hash):
-		temp = hash + str(nonce)
-		hash = hashlib.sha256(temp.encode("utf-8")).hexdigest()
-		nonce += 1
-		print("nonce: " + str(nonce) + ", hash: " + hash)
-
-	return hash
-
-
-# BLOCKS
-
+# BLOCK
 class Block:
 	def __init__(self, transactions, parent_hash):
-		hash_itself = hash((transactions, parent_hash))
+		self.timestamp = datetime.utcnow()
 		self.parent_hash = parent_hash
 		self.transactions = transactions
-		self.hash_itself = hash_itself
+		self.calculate_valid_hash()
+
+	def is_hash_valid(self, calc_hash):
+		return calc_hash.startswith('0' * 3)
+
+	def calculate_valid_hash(self):
+		calc_hash = ''
+		nonce = 0
+
+		while not self.is_hash_valid(calc_hash):
+			temp = calc_hash + str(nonce)
+			calc_hash = hashlib.sha256(temp.encode("utf-8")).hexdigest()
+			nonce += 1
+
+		self.hash_itself = calc_hash
+
+	def to_string(self):
+		return "{0}\t{1}\t{2}".format(self.transactions, self.timestamp, self.parent_hash)
 
 
-# MINING
+# BLOCKCHAIN
+class Blockchain:
+	def __init__(self):
+		self.blocks = []
+		self.set_genesis_block()
+
+	def set_genesis_block(self):
+		genesis_block = Block("Genesis\t", '0'*64)
+		self.blocks.append(genesis_block)
+
+	def get_last_hash(self):
+		last_block = self.blocks[-1]
+		return last_block.hash_itself
+
+	def add_new_block(self, transactions):
+		prev_hash = self.get_last_hash()
+		new_block = Block(transactions, prev_hash)
+		self.blocks.append(new_block)
+
+	def get_blocks(self):
+		return self.blocks
 
 
 
 
 def main():
-	# create the genesis block
-	genesis_block = Block("X paid $100 to Y", 0)
 
-	# print hash of genesis block
-	print("genesis_block_hash: ", genesis_block.hash_itself)
+	# creating a blockchain
+	blockchain = Blockchain()
+	blockchain.add_new_block("First block")
+	blockchain.add_new_block("Second block")
+	blockchain.add_new_block("Third block")
+	blockchain.add_new_block("Fourth block")
+	blockchain.add_new_block("Fifth block")
 
-	# create another block
-	block1 = Block("Y paid $20 to Z, X paid $10 to P", genesis_block.hash_itself)
+	for block in blockchain.get_blocks():
+		print()
+		print(block.to_string())
 
-	# print the hash of block1
-	print("block1_hash: ", block1.hash_itself)
 
-	# calculate a valid hash using the starting block
-	if(False):
-		valid_hash = calculate_valid_hash(genesis_block.hash_itself)
-		print("valid_hash: ", valid_hash)
 
 
 if __name__ == "__main__":
